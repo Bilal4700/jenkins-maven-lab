@@ -1,23 +1,47 @@
-stage('Build') {
-    steps {
-        dir('my_repos/maven_first_example/my-app') {
-            sh 'mvn -B clean compile'
+
+pipeline {
+    agent any
+
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Build') {
+            steps {
+                dir('my_repos/maven_first_example/my-app') {
+                    sh 'mvn -B clean compile'
+                }
+            }
+        }
+
+        stage('Test') {
+            steps {
+                dir('my_repos/maven_first_example/my-app') {
+                    sh 'mvn -B test'
+                }
+            }
+        }
+
+        stage('Package') {
+            steps {
+                dir('my_repos/maven_first_example/my-app') {
+                    sh 'mvn -B -DskipTests package'
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            junit allowEmptyResults: true,
+                  testResults: '**/target/surefire-reports/*.xml'
+
+            archiveArtifacts allowEmptyArchive: true,
+                  artifacts: '**/target/*.jar'
         }
     }
 }
 
-stage('Test') {
-    steps {
-        dir('my_repos/maven_first_example/my-app') {
-            sh 'mvn -B test'
-        }
-    }
-}
-
-stage('Package') {
-    steps {
-        dir('my_repos/maven_first_example/my-app') {
-            sh 'mvn -B -DskipTests package'
-        }
-    }
-}          
